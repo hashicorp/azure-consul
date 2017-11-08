@@ -1,0 +1,69 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "connectionName": {
+            "type": "String"
+        },
+        "resourceGroupName": {
+            "type": "string"
+        },
+        "location": {
+            "type": "String"
+        },
+        "connectionType": {
+            "type": "String"
+        },
+        "virtualNetworkGatewayName1": {
+            "type": "String"
+        },
+        "sharedKey": {
+            "type": "String"
+        },
+        "virtualNetworkGatewayName2": {
+            "type": "String"
+        },
+        "connectionReverseName": {
+            "type": "String"
+        },
+        "connectionReverseLocation": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/connections",
+            "name": "[parameters('connectionName')]",
+            "apiVersion": "2015-06-15",
+            "location": "[parameters('location')]",
+            "properties": {
+                "connectionType": "[parameters('connectionType')]",
+                "virtualNetworkGateway1": {
+                    "id": "[resourceId(parameters('resourceGroupName'), 'Microsoft.Network/virtualNetworkGateways/', parameters('virtualNetworkGatewayName1'))]"
+                },
+                "sharedKey": "[parameters('sharedKey')]",
+                "virtualNetworkGateway2": {
+                    "id": "[resourceId(parameters('resourceGroupName'), 'Microsoft.Network/virtualNetworkGateways/', parameters('virtualNetworkGatewayName2'))]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Network/connections",
+            "name": "[parameters('connectionReverseName')]",
+            "apiVersion": "2015-06-15",
+            "location": "[parameters('connectionReverseLocation')]",
+            "properties": {
+                "connectionType": "[parameters('connectionType')]",
+                "virtualNetworkGateway1": {
+                    "id": "[resourceId(parameters('resourceGroupName'), 'Microsoft.Network/virtualNetworkGateways/', parameters('virtualNetworkGatewayName2'))]"
+                },
+                "sharedKey": "[parameters('sharedKey')]",
+                "virtualNetworkGateway2": {
+                    "id": "[resourceId(parameters('resourceGroupName'), 'Microsoft.Network/virtualNetworkGateways/', parameters('virtualNetworkGatewayName1'))]"
+                }
+            },
+            "dependsOn": []
+        }
+    ]
+}
