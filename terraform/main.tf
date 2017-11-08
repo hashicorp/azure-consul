@@ -15,7 +15,6 @@ module "ssh_key" {
   private_key_filename = "${var.private_key_filename}"
 }
 
-/*
 module "network_westus" {
   source                = "modules/network-azure"
   resource_group_name   = "${azurerm_resource_group.main.name}"
@@ -27,7 +26,7 @@ module "network_westus" {
   os                    = "${var.os}"
   public_key_data       = "${module.ssh_key.public_key_data}"
 }
-*/
+
 module "network_eastus" {
   source                = "modules/network-azure"
   resource_group_name   = "${azurerm_resource_group.main.name}"
@@ -40,7 +39,6 @@ module "network_eastus" {
   public_key_data       = "${module.ssh_key.public_key_data}"
 }
 
-/*
 module "consul_azure_westus" {
   source                    = "modules/consul-azure"
   resource_group_name       = "${azurerm_resource_group.main.name}"
@@ -49,7 +47,7 @@ module "consul_azure_westus" {
   location                  = "westus"
   cluster_size              = "${var.cluster_size}"
   private_subnet_ids        = ["${module.network_westus.subnet_private_ids}"]
-  custom_image_id           = "${var.custom_image_id_westus}"
+  consul_version            = "${var.consul_version}"
   vm_size                   = "${var.consul_vm_size}"
   os                        = "${var.os}"
   public_key_data           = "${module.ssh_key.public_key_data}"
@@ -58,7 +56,7 @@ module "consul_azure_westus" {
   auto_join_client_id       = "${var.auto_join_client_id}"
   auto_join_client_secret   = "${var.auto_join_client_secret}"
 }
-*/
+
 module "consul_azure_eastus" {
   source              = "modules/consul-azure"
   resource_group_name = "${azurerm_resource_group.main.name}"
@@ -88,7 +86,6 @@ There is currently a PR to address this:
 This will provide native Terraform resources to create these components and
 properly track them in the state file.
 */
-/*
 resource "azurerm_template_deployment" "vpngw_westus" {
   name                = "vpngw-westus"
   resource_group_name = "${azurerm_resource_group.main.name}"
@@ -155,5 +152,3 @@ resource "azurerm_template_deployment" "vnet_conn_westus_to_eastus" {
     connectionReverseLocation  = "eastus"
   }
 }
-*/
-

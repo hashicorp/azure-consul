@@ -73,7 +73,7 @@ consul_private_ips = [
 
 * Since we are installing and configuring Consul at runtime, you will need to wait several minutes for everything to complete. You can view the progress of the installation with `tail -f /var/log/user-data.log`.
 
-* Once you see the message "Completed Configuration of Consul Node. Run 'consul members' to view cluster information." you can perform the following:
+* Once you see the message `"Completed Configuration of Consul Node. Run 'consul members' to view cluster information."` you can perform the following:
 
 * Run `consul members` to view the status of the local cluster:
 
