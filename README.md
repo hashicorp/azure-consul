@@ -1,5 +1,9 @@
 # Multi-Region Consul on Azure
 
+NOTE: Because this project uses ARM templates to provision certain resources (see below), terraform destroy will not work correctly (see here for more info). Instead, you will need to delete the entire Azure resource group, either from the portal or CLI.
+
+NOTE: This project creates VPN Gateways for each region that we will be creating the VNet-to-VNet connections for. These resources can take from 30-45 minutes to deploy in Azure completely, so expect the total deployment time for this project to run along those lines (Terraform creates them in parallel).
+
 This objective of this project is to provide an example of a multi-region Consul cluster deployment in Azure using Terraform.  This is a high-level overview of the environment that is created:
 
 * Creates a Resource Group to contain all resources created by this guide
