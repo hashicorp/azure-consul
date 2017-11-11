@@ -96,7 +96,7 @@ consul-eastus-2  10.1.80.4:8301  alive   server  1.0.0  2         dc1  <all>
 * [Multi-Region] To view the status of your WAN-connected clusters, run `consul members -wan`:
 
 ```
-$consul members -wan
+$ consul members -wan
 
 Node                 Address         Status  Type    Build  Protocol  DC   Segment
 consul-eastus-0.dc1  10.1.48.4:8302  alive   server  1.0.0  2         dc1  <all>
