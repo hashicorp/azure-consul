@@ -48,7 +48,6 @@ variable "private_key_filename" {
 
 # Outputs
 
-/*
 output "jumphost_westus_ssh_connection_strings" {
   value = "${formatlist("ssh-add %s && ssh -A -i %s %s@%s", var.private_key_filename, var.private_key_filename, module.network_westus.jumphost_username, module.network_westus.jumphost_ips_public)}"
 }
@@ -56,7 +55,6 @@ output "jumphost_westus_ssh_connection_strings" {
 output "consul_private_ips_westus" {
   value = "${formatlist("ssh %s@%s", module.consul_azure_westus.os_user, module.consul_azure_westus.consul_private_ips)}"
 }
-*/
 
 output "jumphost_eastus_ssh_connection_strings" {
   value = "${formatlist("ssh-add %s && ssh -A -i %s %s@%s", var.private_key_filename, var.private_key_filename, module.network_eastus.jumphost_username, module.network_eastus.jumphost_ips_public)}"
