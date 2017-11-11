@@ -1,16 +1,18 @@
-# Multi-Region Consul on Azure
+# Deploying Consul on Azure (Single and Multi-Region)
 
-NOTE: Because this project uses ARM templates to provision certain resources (see below), terraform destroy will not work correctly (see here for more info). Instead, you will need to delete the entire Azure resource group, either from the portal or CLI.
+NOTE: [Multi-Region] This project creates VPN Gateways for each region that we will be creating the VNet-to-VNet connections for. These resources can take from 30-45 minutes to deploy in Azure completely, so expect the total deployment time for this project to run along those lines (Terraform creates them in parallel).
 
-NOTE: This project creates VPN Gateways for each region that we will be creating the VNet-to-VNet connections for. These resources can take from 30-45 minutes to deploy in Azure completely, so expect the total deployment time for this project to run along those lines (Terraform creates them in parallel).
+NOTE: [Multi-Region] Because this project uses ARM templates to provision certain resources (see below), terraform destroy will not work correctly (see here for more info). Instead, you will need to delete the entire Azure resource group, either from the portal or CLI.
 
-This objective of this project is to provide an example of a multi-region Consul cluster deployment in Azure using Terraform.  This is a high-level overview of the environment that is created:
+This objective of this project is to provide an examples of a single and multi-region Consul cluster deployment in Azure using Terraform.  This is a high-level overview of the environment(s) that is created:
 
 * Creates a Resource Group to contain all resources created by this guide
-* Creates a virtual network, one public subnet, and three private subnets (default values) in the West US and East US Azure regions (configurable)
+* [Single-Region] Creates a virtual network, one public subnet, and three private subnets in the West US Azure region
+* [Multi-Region] Creates a virtual network, one public subnet, and three private subnets in the West US and East US Azure regions
 * Creates a publically-accessible jumphost for SSH access in each public subnet
 * Creates one Consul cluster in each region (3 server nodes in each) using an install script for on-the-fly Consul installation and configuration
-* Uses Consul's cloud auto-join to connect the Consul nodes in each region to each other (LAN gossip pool) as well as connecting each region to each other (WAN gossip pool)
+* Uses Consul's cloud auto-join to connect the Consul nodes within in each region to each other (LAN gossip pool)
+* Additionally, for the Multi-Region deployment, we connect the Consul clusters in each region to each other (WAN gossip pool)
     * You can read more about Consul's Gossip protocol [here](https://www.consul.io/docs/internals/gossip.html).
     * You can read more about Consul's Basic Federation approach [here](https://www.consul.io/docs/guides/datacenters.html).
 
@@ -39,7 +41,7 @@ This objective of this project is to provide an example of a multi-region Consul
     $ source env.sh
     ```
 
-5. Create a read-only Azure Service Principal (using the Azure CLI) that will be used to perform the Consul auto-join (make note of these values as you will use them later in this guide):
+5. Create a read-only Azure Service Principal (using the Azure CLI) that will be used to perform the Consul [auto-join](https://www.consul.io/docs/agent/options.html#microsoft-azure) (make note of these values as you will use them later in this guide):
 
     ```
     $ az ad sp create-for-rbac --role="Reader" --scopes="/subscriptions/[YOUR_SUBSCRIPTION_ID]"
@@ -47,11 +49,12 @@ This objective of this project is to provide an example of a multi-region Consul
 
 ## Deploy the Consul Cluster
 
-1. `git clone` the [`hashicorp-guides/azure-consul-multi-region`](https://github.com/hashicorp-guides/azure-consul-multi-region) repository
+1. `git clone` the [`hashicorp-guides/azure-consul`](https://github.com/hashicorp-guides/azure-consul) repository
 
-2. `cd` into the `azure-consul-multi-region/terraform` directory
+2. `cd` into the desired Terraform subdirectory: `azure-consul/terraform/[single-region | multi-region]`
 
-3. At this point, you will need to customize the `terraform.tfvars` with your specific values. There's a `terraform.tfvars.example` file provided. Update the appropriate values:
+3. At this point, you will need to create a `terraform.tfvars` file, which contains the Azure read-only credentials for Consul auto-join.
+    * NOTE: We explicitly add this file to our .gitignore file to avoid inadvertantly committing sensitive information. There's a `terraform.tfvars.example` file provided that you can copy and update with your specific values:
 
     * `auto_join_subscription_id`, `auto_join_client_id`, `auto_join_client_secret`, `auto_join_tenant_id` will use the values obtained from creating the read-only auto-join Service Principal created in step #5 of the Deployment Prerequisites earlier.
 
@@ -90,7 +93,7 @@ consul-eastus-1  10.1.64.4:8301  alive   server  1.0.0  2         dc1  <all>
 consul-eastus-2  10.1.80.4:8301  alive   server  1.0.0  2         dc1  <all>
 ```
 
-* To view the status of your WAN-connected clusters, run `consul members -wan`:
+* [Multi-Region] To view the status of your WAN-connected clusters, run `consul members -wan`:
 
 ```
 $consul members -wan
