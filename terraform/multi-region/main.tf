@@ -75,79 +75,26 @@ module "consul_azure_eastus" {
   auto_join_client_secret   = "${var.auto_join_client_secret}"
 }
 
-/*
-There are currently no Terraform resources to create VPN gateways and associated
-VNet-to-VNet connections between Azure regions.
+resource "azurerm_virtual_network_peering" "peer-westus-to-eastus" {
+  name                         = "peer-westus-to-eastus"
+  resource_group_name          = "${azurerm_resource_group.main.name}"
+  virtual_network_name         = "${module.network_westus.virtual_network_name}"
+  remote_virtual_network_id    = "${module.network_eastus.virtual_network_id}"
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
 
-There is currently a PR to address this:
-    https://github.com/terraform-providers/terraform-provider-azurerm/pull/133
-
-This will provide native Terraform resources to create these components and
-properly track them in the state file.
-*/
-resource "azurerm_template_deployment" "vpngw_westus" {
-  name                = "vpngw-westus"
-  resource_group_name = "${azurerm_resource_group.main.name}"
-  deployment_mode     = "Incremental"
-  template_body       = "${file("${path.root}/templates/arm_template_vpngw.json")}"
-  depends_on          = ["module.network_westus"]
-
-  parameters {
-    resourceGroupName          = "${azurerm_resource_group.main.name}"
-    location                   = "westus"
-    name                       = "vpngw-westus"
-    existingVirtualNetworkName = "${module.network_westus.virtual_network_name}"
-    newPublicIpAddressName     = "vpngw-pub-ip-westus"
-    sku                        = "Basic"
-    gatewayType                = "Vpn"
-    vpnType                    = "RouteBased"
-    newSubnetName              = "GatewaySubnet"
-    subnetAddressPrefix        = "10.0.96.0/20"
-  }
+  # `allow_gateway_transit` must be set to false for vnet Global Peering
+  allow_gateway_transit = false
 }
 
-resource "azurerm_template_deployment" "vpngw_eastus" {
-  name                = "vpngw-eastus"
-  resource_group_name = "${azurerm_resource_group.main.name}"
-  deployment_mode     = "Incremental"
-  template_body       = "${file("${path.root}/templates/arm_template_vpngw.json")}"
-  depends_on          = ["module.network_eastus"]
+resource "azurerm_virtual_network_peering" "peer-eastus-to-westus" {
+  name                         = "peer-eastus-to-westus"
+  resource_group_name          = "${azurerm_resource_group.main.name}"
+  virtual_network_name         = "${module.network_eastus.virtual_network_name}"
+  remote_virtual_network_id    = "${module.network_westus.virtual_network_id}"
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
 
-  parameters {
-    resourceGroupName          = "${azurerm_resource_group.main.name}"
-    location                   = "eastus"
-    name                       = "vpngw-eastus"
-    existingVirtualNetworkName = "${module.network_eastus.virtual_network_name}"
-    newPublicIpAddressName     = "vpngw-pub-ip-eastus"
-    sku                        = "Basic"
-    gatewayType                = "Vpn"
-    vpnType                    = "RouteBased"
-    newSubnetName              = "GatewaySubnet"
-    subnetAddressPrefix        = "10.1.96.0/20"
-  }
-}
-
-// We create the reverse connection in the same template
-resource "azurerm_template_deployment" "vnet_conn_westus_to_eastus" {
-  name                = "vnet-conn-westus-to-eastus"
-  resource_group_name = "${azurerm_resource_group.main.name}"
-  deployment_mode     = "Incremental"
-  template_body       = "${file("${path.root}/templates/arm_template_vnet_to_vnet.json")}"
-
-  depends_on = [
-    "azurerm_template_deployment.vpngw_westus",
-    "azurerm_template_deployment.vpngw_eastus",
-  ]
-
-  parameters {
-    resourceGroupName          = "${azurerm_resource_group.main.name}"
-    location                   = "westus"
-    connectionName             = "vpngw-westus-to-vpngw-eastus"
-    connectionType             = "Vnet2Vnet"
-    virtualNetworkGatewayName1 = "vpngw-westus"
-    virtualNetworkGatewayName2 = "vpngw-eastus"
-    sharedKey                  = "testpsk"
-    connectionReverseName      = "vpngw-eastus-to-vpngw-westus"
-    connectionReverseLocation  = "eastus"
-  }
+  # `allow_gateway_transit` must be set to false for vnet Global Peering
+  allow_gateway_transit = false
 }
