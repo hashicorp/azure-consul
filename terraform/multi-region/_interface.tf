@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 # Required variables (defined in terraform.tfvars)
 variable "auto_join_subscription_id" {
   type = "string"
